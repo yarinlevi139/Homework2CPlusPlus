@@ -1,17 +1,18 @@
 #include "player.hpp"
-
+#include "vector"
 Player::Player() {
     this->name = "";
     this->already_playing = false;
+    this->isWinner = false;
 }
 
 Player::Player(string name) {
     this->name = name;
 }
 int Player::stacksize() {
-    return 0;
+    return this->cards.size();
 }
 
 int Player::cardesTaken() {
-    return 0;
+    return this->cards_taken.size();
 }
