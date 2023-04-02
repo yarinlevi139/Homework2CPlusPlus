@@ -11,6 +11,7 @@ TEST_CASE("Check if game class constructor is OK")
     Player p2("player2");
     CHECK_NOTHROW(Game g(p1, p2));
 }
+TEST_CASE("")
 
 TEST_CASE("Check if both cards taken equal to 52")
 {
