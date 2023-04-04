@@ -50,6 +50,8 @@ Game::Game(Player &player1, Player &player2): p1(player1),p2(player2) {
     if (p1.stacksize() > 0 || p2.stacksize() > 0) {
         throw std::invalid_argument("One has already registered");
     }
+    if(&player1 == &player2)
+        ended = true;
     this->p1.already_playing = true;
     this->p2.already_playing = true;
     create_card_container(this->card_container);
@@ -111,13 +113,21 @@ void Game::playTurn() {
             }
             else
                 break;
-            if (p1.stacksize() == 0 && p2.stacksize() == 0) {
-                std::random_device r;
-                std::seed_seq seed{r(), r(), r(), r(), r(), r(), r(), r()};
-                std::mt19937 eng(seed);
-                std::shuffle(table.begin(), table.end(), eng);
-                divide_cards(this->p1, this->p2, table);
-                this->count_division++;
+            if (p1.stacksize() == 0 && p2.stacksize() == 0) { //If the cards got empty when there is a War
+                for (size_t i = 0; i < table.size(); ++i) {
+                    if(i%2 == 0) {
+                        this->p1.cards_taken.push_back(table[i]);
+                        this->count_p1_wins++;
+                    }
+                    else {
+                        this->p2.cards_taken.push_back(table[i]);
+                        this->count_p2_wins++;
+
+                    }
+
+                }
+                this->ended = true;
+                return;
             }
             if(p1.stacksize()!=0 && p2.stacksize()!=0) {
                 this->log.push_back( this->p1.name + " Plays : " + this->p1.cards.top().name + "\n");
@@ -132,16 +142,16 @@ void Game::playTurn() {
         }
         if (c1.value > c2.value) {
             this->count_p1_wins++;
-            while (!this->table.empty()) {
-                p1.cards_taken.insert(p1.cards_taken.end(), this->table.begin(), this->table.end());
-                this->table.erase(this->table.begin(), this->table.end());
-            }
-        } else if (c1.value<c2.value){
+            this->p1.cards_taken.push_back(c1);
+            this->p1.cards_taken.push_back(c2);
+            this->p1.cards_taken.insert(this->p1.cards_taken.end(), this->table.begin(), this->table.end());
+            this->table.clear();
+        } else if (c1.value < c2.value) {
             this->count_p2_wins++;
-            while (!this->table.empty()) {
-                p2.cards_taken.insert(p2.cards_taken.end(), this->table.begin(), this->table.end());
-                this->table.erase(this->table.begin(), this->table.end());
-            }
+            this->p2.cards_taken.push_back(c1);
+            this->p2.cards_taken.push_back(c2);
+            this->p2.cards_taken.insert(this->p2.cards_taken.end(), this->table.begin(), this->table.end());
+            this->table.clear();
         }
 
     }
@@ -150,7 +160,7 @@ void Game::playTurn() {
 void Game::playAll() {
     if(ended)
         throw invalid_argument("Game has already ended");
-    while (p1.stacksize() > 0 && p2.stacksize() > 0)
+    while (p1.stacksize() > 0 && p2.stacksize() > 0 && !ended)
         playTurn();
     ended = true;
 }
@@ -166,13 +176,16 @@ void Game::printLastTurn() {
 void Game::printStats() {
     cout << "Number of wins of: " << this->p1.name << " is " << this->count_p1_wins << "\n";
     cout << "Number of wins of: " << this->p2.name << " is " << this->count_p2_wins << "\n";
+    cout << "Number of cards taken of: " << this->p1.name << " is " << this->p1.cardesTaken() << "\n";
+    cout << "Number of cards taken of: " << this->p2.name << " is " << this->p2.cardesTaken() << "\n";
     cout << "Number of draws is: " << this->count_draws << "\n";
-    cout << "Number of divisions is: " << this->count_division << "\n";
 }
 
 void Game::printWiner() {
     if (p1.cardesTaken() > p2.cardesTaken())
-        cout << this->p1.name << "wins!!!!!!!!!!!!!!!!!!!!!!\n";
+        cout << this->p1.name << " wins!!!!!!!!!!!!!!!!!!!!!!\n";
+    else if (p1.cardesTaken() < p2.cardesTaken())
+        cout << this->p2.name << " wins!!!!!!!!!!!!!!!!!!!!!!\n";
     else
-        cout << this->p1.name << "wins!!!!!!!!!!!!!!!!!!!!!!\n";
+        throw std::invalid_argument("Tie");
 }
