@@ -60,6 +60,7 @@ Game::Game(Player &player1, Player &player2): p1(player1),p2(player2) {
     std::mt19937 eng(seed);
     std::shuffle(card_container.begin(), card_container.end(), eng);
     divide_cards(this->p1, this->p2, card_container);
+    this->table.clear();
     this->count_p1_wins = 0, this->count_p2_wins = 0 , this->count_draws = 0 , this->count_division = 0;
 }
 
@@ -111,8 +112,6 @@ void Game::playTurn() {
                 p1.cards.pop();
                 p2.cards.pop();
             }
-            else
-                break;
             if (p1.stacksize() == 0 && p2.stacksize() == 0) { //If the cards got empty when there is a War
                 for (size_t i = 0; i < table.size(); ++i) {
                     if(i%2 == 0) {
@@ -137,8 +136,6 @@ void Game::playTurn() {
                 this->p1.cards.pop();
                 this->p2.cards.pop();
             }
-            else
-                break;
         }
         if (c1.value > c2.value) {
             this->count_p1_wins++;
@@ -160,7 +157,7 @@ void Game::playTurn() {
 void Game::playAll() {
     if(ended)
         throw invalid_argument("Game has already ended");
-    while (p1.stacksize() > 0 && p2.stacksize() > 0 && !ended)
+    while (p1.cardesTaken() + p2.cardesTaken() < 52 && !ended)
         playTurn();
     ended = true;
 }
@@ -187,5 +184,5 @@ void Game::printWiner() {
     else if (p1.cardesTaken() < p2.cardesTaken())
         cout << this->p2.name << " wins!!!!!!!!!!!!!!!!!!!!!!\n";
     else
-        throw std::invalid_argument("Tie");
+        cout << "Tie!";
 }
